@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GTPRO — สมุดบันทึกการเทรด</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F7F6F2;
+    --surface:#FFFFFF;
+    --surface-2:#FBFAF6;
+    --border:#E4E0D4;
+    --ink:#16213E;
+    --ink-soft:#5B6478;
+    --ink-faint:#9096A6;
+    --gold:#A07A22;
+    --gold-deep:#7A5C19;
+    --gold-soft:#F3E8CC;
+    --good:#2F7D5B;
+    --good-soft:#E3F1EA;
+    --warn:#B8860B;
+    --warn-soft:#FBF1D6;
+    --bad:#B23A2E;
+    --bad-soft:#FBE7E3;
+    --radius-lg:18px;
+    --radius-md:12px;
+    --radius-sm:8px;
+    --shadow: 0 1px 2px rgba(22,33,62,.05), 0 10px 30px -14px rgba(22,33,62,.16);
+    --font-display:'Chakra Petch', sans-serif;
+    --font-body:'IBM Plex Sans Thai', sans-serif;
+    --font-mono:'IBM Plex Mono', monospace;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:
+      radial-gradient(1200px 600px at 100% -10%, #FFFDF6 0%, transparent 55%),
+      var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    padding: 28px 18px 80px;
+  }
+  .wrap{ max-width: 1040px; margin: 0 auto; }
+
+  .eyebrow{
+    font-family:var(--font-mono); font-size:11.5px; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--gold-deep);
+    display:flex; align-items:center; gap:8px; margin-bottom:10px;
+  }
+  .eyebrow::before{ content:""; width:16px; height:2px; background:var(--gold); display:inline-block; }
+  h1.title{
+    font-family:var(--font-display); font-weight:700;
+    font-size: clamp(26px, 4.2vw, 36px); letter-spacing:-.01em;
+    margin:0 0 6px; color:var(--ink);
+  }
+  p.subtitle{ margin:0 0 26px; color:var(--ink-soft); font-size:15px; max-width: 60ch; }
+
+  .field{ display:flex; flex-direction:column; gap:6px; }
+  .field label{ font-size:12.5px; color:var(--ink-soft); font-weight:600; }
+  .field .hint{ font-size:11.5px; color:var(--ink-faint); font-weight:400; margin-top:-2px; }
+  input[type="text"], input[type="number"], input[type="date"], select, textarea{
+    width:100%; font-family:var(--font-mono); font-size:14px;
+    padding:9px 11px; border-radius:var(--radius-sm);
+    border:1px solid var(--border); background:var(--surface-2); color:var(--ink);
+    outline:none; transition:border-color .15s, background .15s;
+  }
+  select, textarea{ font-family:var(--font-body); font-size:13.5px; }
+  textarea{ resize:vertical; min-height:60px; }
+  input:focus, select:focus, textarea:focus{ border-color:var(--gold); background:#fff; }
+
+  .panel{
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius-lg); box-shadow:var(--shadow); padding:20px;
+    margin-bottom:18px;
+  }
+  .panel h3{
+    font-family:var(--font-display); font-size:14px; margin:0 0 4px; color:var(--ink);
+    display:flex; align-items:center; gap:8px;
+  }
+  .panel .panel-desc{ font-size:12.5px; color:var(--ink-soft); margin:0 0 16px; }
+
+  /* stat cards */
+  .stat-row{ display:grid; grid-template-columns: repeat(4, 1fr); gap:14px; margin-bottom:18px; }
+  @media (max-width:760px){ .stat-row{ grid-template-columns: repeat(2, 1fr); } }
+  .stat-card{
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius-lg); box-shadow:var(--shadow); padding:16px 18px;
+  }
+  .stat-label{
+    font-family:var(--font-mono); font-size:10.5px; letter-spacing:.06em;
+    text-transform:uppercase; color:var(--ink-faint); margin-bottom:6px;
+  }
+  .stat-value{ font-family:var(--font-display); font-size:24px; font-weight:700; color:var(--ink); }
+  .stat-value.good{ color:var(--good); }
+  .stat-value.bad{ color:var(--bad); }
+  .stat-sub{ font-family:var(--font-mono); font-size:11px; color:var(--ink-faint); margin-top:2px; }
+
+  /* add form */
+  .form-grid{ display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; }
+  @media (max-width:760px){ .form-grid{ grid-template-columns: repeat(2, 1fr); } }
+  .form-grid .span-2{ grid-column: span 2; }
+  @media (max-width:760px){ .form-grid .span-2{ grid-column: span 2; } }
+  .form-grid .span-full{ grid-column: 1 / -1; }
+  .btn-primary{
+    font-family:var(--font-body); font-size:13.5px; font-weight:700;
+    padding:11px 20px; border-radius:var(--radius-sm);
+    border:none; background:var(--gold); color:#fff; cursor:pointer;
+    transition:background .15s;
+  }
+  .btn-primary:hover{ background:var(--gold-deep); }
+  .btn-ghost{
+    font-family:var(--font-body); font-size:12.5px; font-weight:600;
+    padding:8px 14px; border-radius:var(--radius-sm);
+    border:1px solid var(--border); background:var(--surface-2);
+    color:var(--ink-soft); cursor:pointer;
+  }
+  .btn-ghost:hover{ background:#fff; border-color:var(--gold); color:var(--gold-deep); }
+
+  /* weak-spot tag table */
+  table.tag-table{ width:100%; border-collapse:collapse; font-size:13px; }
+  table.tag-table th{
+    text-align:left; font-family:var(--font-mono); font-weight:600; font-size:10.5px;
+    color:var(--ink-faint); text-transform:uppercase; letter-spacing:.04em;
+    padding:8px 12px; border-bottom:1px solid var(--border);
+  }
+  table.tag-table td{ padding:9px 12px; border-bottom:1px solid var(--border); font-family:var(--font-mono); }
+  table.tag-table td.tag-name{ font-family:var(--font-body); font-weight:600; color:var(--ink); }
+  table.tag-table tr.tag-weak{ background: var(--bad-soft); }
+  table.tag-table tr.tag-strong{ background: var(--good-soft); }
+  .pl-good{ color:var(--good); font-weight:600; }
+  .pl-bad{ color:var(--bad); font-weight:600; }
+
+  /* entries table */
+  .table-toolbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; flex-wrap:wrap; }
+  .table-toolbar .field{ min-width:180px; }
+  .entries-scroll{ max-height:560px; overflow-y:auto; }
+  table.entries-table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  table.entries-table thead th{
+    position:sticky; top:0; z-index:1; background:var(--surface-2);
+    text-align:left; font-family:var(--font-mono); font-weight:600; font-size:10px;
+    color:var(--ink-faint); text-transform:uppercase; letter-spacing:.03em;
+    padding:9px 10px; border-bottom:1px solid var(--border); white-space:nowrap;
+  }
+  table.entries-table td{
+    padding:8px 10px; border-bottom:1px solid var(--border);
+    font-family:var(--font-mono); color:var(--ink); white-space:nowrap;
+  }
+  table.entries-table td.note-cell{ white-space:normal; font-family:var(--font-body); font-size:12px; color:var(--ink-soft); max-width:180px; }
+  .dir-chip{ font-family:var(--font-body); font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:999px; }
+  .dir-chip.buy{ background:var(--good-soft); color:var(--good); }
+  .dir-chip.sell{ background:var(--bad-soft); color:var(--bad); }
+  .tag-chip{ font-family:var(--font-body); font-size:11px; background:var(--gold-soft); color:var(--gold-deep); padding:2px 9px; border-radius:999px; }
+  .btn-del{ background:none; border:none; color:var(--ink-faint); cursor:pointer; font-size:14px; line-height:1; }
+  .btn-del:hover{ color:var(--bad); }
+  .empty-state{ text-align:center; padding:40px 20px; color:var(--ink-faint); font-size:13px; }
+
+  footer{ text-align:center; margin-top:32px; font-family:var(--font-mono); font-size:11px; color:var(--ink-faint); }
+
+  input[type="file"]{
+    font-family:var(--font-body); font-size:12.5px;
+    padding:8px; background:var(--surface-2);
+  }
+  .thumb-cell .thumb-wrap{ position:relative; display:inline-block; }
+  .thumb-cell img{
+    width:36px; height:36px; object-fit:cover; border-radius:6px;
+    border:1px solid var(--border); cursor:pointer; display:block;
+    transition:transform .15s;
+  }
+  .thumb-cell .thumb-wrap:hover img{ transform:scale(1.15); }
+  .thumb-count-badge{
+    position:absolute; bottom:-5px; right:-5px;
+    background:var(--gold); color:#fff; font-family:var(--font-mono);
+    font-size:9px; font-weight:700; min-width:15px; height:15px;
+    border-radius:999px; display:flex; align-items:center; justify-content:center;
+    padding:0 3px; border:1.5px solid var(--surface);
+  }
+  .thumb-empty{ color:var(--ink-faint); font-size:12px; }
+
+  .lightbox-overlay{
+    position:fixed; inset:0; background:rgba(16,22,40,.88);
+    display:flex; align-items:center; justify-content:center;
+    z-index:100; padding:30px;
+  }
+  .lightbox-overlay img{
+    max-width:100%; max-height:100%; border-radius:10px;
+    box-shadow:0 20px 60px rgba(0,0,0,.4);
+  }
+  .lightbox-close{
+    position:absolute; top:20px; right:24px;
+    background:rgba(255,255,255,.12); border:none; color:#fff;
+    width:36px; height:36px; border-radius:50%; font-size:16px; cursor:pointer;
+  }
+  .lightbox-close:hover{ background:rgba(255,255,255,.22); }
+
+  /* multi-image preview list in the add-trade form */
+  .image-preview-list{ display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
+  .image-preview-item{ position:relative; }
+  .image-preview-item img{
+    width:84px; height:84px; object-fit:cover; border-radius:8px;
+    border:1px solid var(--border);
+  }
+  .image-preview-item .btn-remove-img{
+    position:absolute; top:-7px; right:-7px;
+    width:20px; height:20px; border-radius:50%;
+    background:var(--bad); color:#fff; border:2px solid var(--surface);
+    font-size:11px; line-height:1; cursor:pointer;
+  }
+
+  /* Notion-style detail view */
+  .detail-overlay{
+    position:fixed; inset:0; background:rgba(16,22,40,.55);
+    z-index:200; display:flex; justify-content:center;
+    overflow-y:auto; padding:40px 20px;
+  }
+  .detail-sheet{
+    position:relative; background:var(--surface);
+    max-width:760px; width:100%; height:fit-content;
+    border-radius:var(--radius-lg); box-shadow:0 30px 80px rgba(0,0,0,.35);
+    padding:48px 56px 56px;
+  }
+  @media (max-width:680px){ .detail-sheet{ padding:70px 20px 40px; } }
+  .detail-close{
+    position:absolute; top:20px; right:20px;
+    width:34px; height:34px; border-radius:50%;
+    background:var(--surface-2); border:1px solid var(--border);
+    color:var(--ink-soft); font-size:14px; cursor:pointer;
+  }
+  .detail-close:hover{ background:#fff; border-color:var(--gold); color:var(--gold-deep); }
+  .detail-eyebrow{
+    font-family:var(--font-mono); font-size:11px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--ink-faint); margin-bottom:8px;
+  }
+  .detail-title{
+    font-family:var(--font-display); font-weight:700; font-size:30px;
+    color:var(--ink); margin:0 0 18px; line-height:1.2;
+  }
+  .detail-stat-row{
+    display:flex; flex-wrap:wrap; gap:10px; margin-bottom:28px;
+  }
+  .detail-stat{
+    background:var(--surface-2); border:1px solid var(--border);
+    border-radius:10px; padding:8px 14px; min-width:88px;
+  }
+  .detail-stat .k{ font-family:var(--font-mono); font-size:10px; color:var(--ink-faint); text-transform:uppercase; margin-bottom:2px; }
+  .detail-stat .v{ font-family:var(--font-mono); font-size:15px; font-weight:600; color:var(--ink); }
+  .detail-images{ display:flex; flex-direction:column; gap:18px; margin-bottom:28px; }
+  .detail-images img{
+    width:100%; border-radius:12px; border:1px solid var(--border);
+    box-shadow:0 8px 24px -12px rgba(22,33,62,.25); cursor:zoom-in; display:block;
+  }
+  .detail-note-label{
+    font-family:var(--font-mono); font-size:11px; letter-spacing:.06em;
+    text-transform:uppercase; color:var(--ink-faint); margin-bottom:8px;
+  }
+  .detail-note-body{
+    font-size:15.5px; line-height:1.8; color:var(--ink); white-space:pre-wrap;
+  }
+  .detail-note-empty{ font-size:14px; color:var(--ink-faint); font-style:italic; }
+  .detail-footer{
+    margin-top:32px; padding-top:20px; border-top:1px solid var(--border);
+    display:flex; justify-content:flex-end;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">GTPRO · TRADE JOURNAL</div>
+  <h1 class="title">สมุดบันทึกการเทรด</h1>
+  <p class="subtitle">บันทึกทุกออเดอร์พร้อมเหตุผลที่เข้า ระบบจะสรุป Win Rate, RR เฉลี่ย และชี้จุดอ่อนที่ทำให้ขาดทุนบ่อยให้อัตโนมัติ</p>
+
+  <!-- Summary stats -->
+  <div class="stat-row">
+    <div class="stat-card">
+      <div class="stat-label">จำนวนออเดอร์ทั้งหมด</div>
+      <div class="stat-value" id="statTotal">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Win Rate</div>
+      <div class="stat-value" id="statWinRate">0%</div>
+      <div class="stat-sub" id="statWinSub">0 ชนะ / 0 แพ้</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">RR เฉลี่ย</div>
+      <div class="stat-value" id="statAvgRR">–</div>
+      <div class="stat-sub" id="statAvgRRSub">คำนวณจากไม้ที่มี SL + Exit</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">กำไร/ขาดทุนรวม</div>
+      <div class="stat-value" id="statTotalPL">$0.00</div>
+      <div class="stat-sub" id="statTotalPLTHB">≈ ฿0</div>
+    </div>
+  </div>
+
+  <!-- Weak-spot breakdown -->
+  <div class="panel" id="weakPanel">
+    <h3>จุดอ่อนที่ขาดทุนบ่อย (แยกตามเหตุผล/Setup)</h3>
+    <p class="panel-desc">เรียงจากขาดทุนสุทธิมากที่สุดไปน้อยที่สุด — แถบสีแดงคือ Setup ที่ควรระวังหรือเลิกใช้ แถบสีเขียวคือ Setup ที่ทำกำไรได้ดี</p>
+    <table class="tag-table">
+      <thead>
+        <tr><th>เหตุผล / Setup</th><th>จำนวนไม้</th><th>Win Rate</th><th>RR เฉลี่ย</th><th>กำไร/ขาดทุนรวม</th></tr>
+      </thead>
+      <tbody id="tagTableBody"></tbody>
+    </table>
+    <div class="empty-state" id="weakEmpty" style="display:none;">ยังไม่มีข้อมูลพอสำหรับสรุปจุดอ่อน — เริ่มบันทึกออเดอร์ด้านล่างได้เลย</div>
+  </div>
+
+  <!-- Add new trade -->
+  <div class="panel">
+    <h3>+ เพิ่มออเดอร์ใหม่</h3>
+    <div class="form-grid">
+      <div class="field">
+        <label for="fDate">วันที่</label>
+        <input type="date" id="fDate">
+      </div>
+      <div class="field">
+        <label for="fSymbol">สินทรัพย์</label>
+        <input type="text" id="fSymbol" list="symbolList" placeholder="XAUUSD" value="XAUUSD">
+        <datalist id="symbolList">
+          <option value="XAUUSD"><option value="EURUSD"><option value="GBPUSD">
+          <option value="USDJPY"><option value="BTCUSD"><option value="US30">
+        </datalist>
+      </div>
+      <div class="field">
+        <label for="fDirection">ทิศทาง</label>
+        <select id="fDirection">
+          <option value="buy">Buy</option>
+          <option value="sell">Sell</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="fLot">Lot</label>
+        <input type="number" id="fLot" min="0" step="0.01" value="0.10">
+      </div>
+
+      <div class="field">
+        <label for="fEntry">ราคาเข้า (Entry)</label>
+        <input type="number" id="fEntry" step="0.00001" placeholder="ไม่บังคับ">
+      </div>
+      <div class="field">
+        <label for="fSL">ราคา SL</label>
+        <input type="number" id="fSL" step="0.00001" placeholder="ไม่บังคับ">
+      </div>
+      <div class="field">
+        <label for="fExit">ราคาปิด (Exit)</label>
+        <input type="number" id="fExit" step="0.00001" placeholder="ไม่บังคับ">
+      </div>
+      <div class="field">
+        <label for="fPL">กำไร/ขาดทุน ($)</label>
+        <input type="number" id="fPL" step="0.01" placeholder="เช่น 45 หรือ -20">
+      </div>
+
+      <div class="field span-2">
+        <label for="fTag">เหตุผล / Setup ที่เข้า</label>
+        <select id="fTag">
+          <option value="ตาม Signal GTPRO">ตาม Signal GTPRO</option>
+          <option value="Breakout">Breakout</option>
+          <option value="Pullback/Retest">Pullback / Retest</option>
+          <option value="Trend Following">Trend Following</option>
+          <option value="Counter-trend">Counter-trend / สวนเทรนด์</option>
+          <option value="News Trade">เทรดข่าว</option>
+          <option value="Revenge Trade">Revenge Trade (แก้มือ)</option>
+          <option value="FOMO">FOMO / กลัวตกรถ</option>
+          <option value="อื่นๆ">อื่นๆ (พิมพ์เอง)</option>
+        </select>
+      </div>
+      <div class="field span-2" id="fTagCustomWrap" style="display:none;">
+        <label for="fTagCustom">ระบุเหตุผล/Setup</label>
+        <input type="text" id="fTagCustom" placeholder="พิมพ์เหตุผลของคุณ">
+      </div>
+
+      <div class="field span-full">
+        <label for="fNote">หมายเหตุ</label>
+        <textarea id="fNote" placeholder="สภาวะตลาด, ความรู้สึกตอนเข้า, สิ่งที่จะทำต่างออกไปครั้งหน้า..."></textarea>
+      </div>
+
+      <div class="field span-full">
+        <label for="fImage">แนบภาพกราฟ (ไม่บังคับ แนบได้หลายรูป)</label>
+        <input type="file" id="fImage" accept="image/*" multiple>
+        <span class="hint">ระบบจะย่อขนาดภาพให้อัตโนมัติก่อนบันทึกในเครื่อง (เก็บด้วย IndexedDB จึงแนบรูปได้เยอะกว่าเดิมมาก) — เลือกซ้ำได้เรื่อยๆ เพื่อเพิ่มรูปทีละใบ</span>
+        <div id="fImagePreviewList" class="image-preview-list"></div>
+      </div>
+    </div>
+    <div style="margin-top:16px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+      <button class="btn-primary" id="btnAddTrade">บันทึกออเดอร์</button>
+      <span class="hint" id="storageUsage"></span>
+    </div>
+  </div>
+
+  <!-- Entries table -->
+  <div class="panel">
+    <div class="table-toolbar">
+      <h3 style="margin:0;">ประวัติออเดอร์ทั้งหมด</h3>
+      <div style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+        <div class="field">
+          <label for="filterSymbol">กรองตามสินทรัพย์</label>
+          <select id="filterSymbol"><option value="">ทั้งหมด</option></select>
+        </div>
+        <button class="btn-ghost" id="btnExportCsv" style="align-self:flex-end;">ส่งออก CSV</button>
+      </div>
+    </div>
+    <div class="entries-scroll">
+      <table class="entries-table">
+        <thead>
+          <tr>
+            <th>วันที่</th><th>สินทรัพย์</th><th>ทิศทาง</th><th>Lot</th>
+            <th>Entry</th><th>SL</th><th>Exit</th><th>RR</th><th>P/L ($)</th>
+            <th>เหตุผล</th><th>หมายเหตุ</th><th>ภาพ</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="entriesTableBody"></tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="entriesEmpty" style="display:none;">ยังไม่มีออเดอร์ในสมุดบันทึก — เริ่มเพิ่มออเดอร์แรกด้านบนได้เลย</div>
+  </div>
+
+  <footer>GTPRO Trade Journal · ข้อมูลถูกบันทึกไว้ในเครื่องนี้เท่านั้น (localStorage) — ไม่ได้ส่งขึ้นเซิร์ฟเวอร์ใดๆ · กด "ส่งออก CSV" เพื่อสำรองข้อมูลเป็นระยะ</footer>
+</div>
+
+<div id="lightbox" class="lightbox-overlay" style="display:none;">
+  <button id="lightboxClose" class="lightbox-close" type="button">✕</button>
+  <img id="lightboxImg" src="" alt="ภาพกราฟ">
+</div>
+
+<div id="detailView" class="detail-overlay" style="display:none;">
+  <div class="detail-sheet">
+    <button id="detailClose" class="detail-close" type="button">✕</button>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var DB_NAME = 'gtpro_trade_journal_db';
+  var STORE_NAME = 'trades';
+  var FX_KEY = 'gtpro_trade_journal_fx_v1';
+  var LEGACY_STORAGE_KEY = 'gtpro_trade_journal_v1'; // old localStorage-only version, migrated on first load
+
+  var trades = [];       // in-memory cache used for rendering
+  var fxRate = loadFx();
+  var dbReady = false;
+
+  function openDB(){
+    return new Promise(function(resolve, reject){
+      if(!window.indexedDB){ reject(new Error('no-indexeddb')); return; }
+      var req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = function(e){
+        var db = e.target.result;
+        if(!db.objectStoreNames.contains(STORE_NAME)){
+          db.createObjectStore(STORE_NAME, {keyPath:'id'});
+        }
+      };
+      req.onsuccess = function(e){ resolve(e.target.result); };
+      req.onerror = function(e){ reject(e.target.error); };
+    });
+  }
+  var dbPromise = openDB();
+
+  function dbGetAll(){
+    return dbPromise.then(function(db){
+      return new Promise(function(resolve, reject){
+        var tx = db.transaction(STORE_NAME, 'readonly');
+        var req = tx.objectStore(STORE_NAME).getAll();
+        req.onsuccess = function(){ resolve(req.result || []); };
+        req.onerror = function(){ reject(req.error); };
+      });
+    });
+  }
+  function dbAdd(trade){
+    return dbPromise.then(function(db){
+      return new Promise(function(resolve, reject){
+        var tx = db.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).add(trade);
+        tx.oncomplete = function(){ resolve(); };
+        tx.onerror = function(){ reject(tx.error); };
+      });
+    });
+  }
+  function dbDelete(id){
+    return dbPromise.then(function(db){
+      return new Promise(function(resolve, reject){
+        var tx = db.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).delete(id);
+        tx.oncomplete = function(){ resolve(); };
+        tx.onerror = function(){ reject(tx.error); };
+      });
+    });
+  }
+
+  function sortTradesDesc(){
+    trades.sort(function(a,b){
+      var ta = parseInt(String(a.id).split('_')[0], 10) || 0;
+      var tb = parseInt(String(b.id).split('_')[0], 10) || 0;
+      return tb - ta;
+    });
+  }
+
+  // migrate any data from the old localStorage-only version (v1) into IndexedDB, once
+  function migrateLegacyIfNeeded(){
+    var legacy = [];
+    try{
+      var raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+      if(raw) legacy = JSON.parse(raw) || [];
+    }catch(e){}
+    if(!legacy.length) return Promise.resolve();
+    return Promise.all(legacy.map(function(t){ return dbAdd(t).catch(function(){}); }))
+      .then(function(){ try{ localStorage.removeItem(LEGACY_STORAGE_KEY); }catch(e){} });
+  }
+
+  function loadFx(){
+    try{
+      var raw = localStorage.getItem(FX_KEY);
+      if(raw) return parseFloat(raw) || 36.5;
+    }catch(e){}
+    return 36.5;
+  }
+  function saveFx(rate){
+    try{ localStorage.setItem(FX_KEY, String(rate)); }catch(e){}
+  }
+  function fetchFx(){
+    fetch('https://open.er-api.com/v6/latest/USD')
+      .then(function(res){ return res.json(); })
+      .then(function(data){
+        if(data && data.rates && data.rates.THB){
+          fxRate = data.rates.THB;
+          saveFx(fxRate);
+          renderAll();
+        }
+      })
+      .catch(function(){ /* silently keep last known / default rate */ });
+  }
+
+  function fmtUSD(n){
+    if(isNaN(n)) n = 0;
+    var sign = n < 0 ? '-' : '';
+    return sign + '$' + Math.abs(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+  function fmtTHB(n){
+    if(isNaN(n)) n = 0;
+    var sign = n < 0 ? '-' : '';
+    return sign + '฿' + Math.abs(n).toLocaleString('th-TH', {maximumFractionDigits:0});
+  }
+  function fmtNum(n, d){
+    if(n === null || n === undefined || isNaN(n)) return '–';
+    return n.toLocaleString('th-TH', {minimumFractionDigits:d, maximumFractionDigits:d});
+  }
+
+  function calcRR(t){
+    if(t.entry === null || t.sl === null || t.exit === null) return null;
+    var risk, reward;
+    if(t.direction === 'buy'){
+      risk = t.entry - t.sl;
+      reward = t.exit - t.entry;
+    } else {
+      risk = t.sl - t.entry;
+      reward = t.entry - t.exit;
+    }
+    if(!(risk > 0)) return null; // SL placed on the wrong side / zero risk
+    return reward / risk;
+  }
+
+  /* ---------------- Image handling ---------------- */
+  function resizeImageFile(file, maxDim, quality){
+    return new Promise(function(resolve, reject){
+      var reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = function(){
+        var img = new Image();
+        img.onerror = reject;
+        img.onload = function(){
+          var w = img.width, h = img.height;
+          if(w > h && w > maxDim){ h = Math.round(h * (maxDim / w)); w = maxDim; }
+          else if(h > maxDim){ w = Math.round(w * (maxDim / h)); h = maxDim; }
+          var canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  var pendingImages = []; // array of resized dataURLs waiting to be attached to the next saved trade
+
+  var fImage = document.getElementById('fImage');
+  var fImagePreviewList = document.getElementById('fImagePreviewList');
+
+  function renderPendingImagePreviews(){
+    fImagePreviewList.innerHTML = '';
+    pendingImages.forEach(function(dataUrl, idx){
+      var item = document.createElement('div');
+      item.className = 'image-preview-item';
+      item.innerHTML = '<img src="' + dataUrl + '"><button type="button" class="btn-remove-img" data-idx="' + idx + '">✕</button>';
+      fImagePreviewList.appendChild(item);
+    });
+    fImagePreviewList.querySelectorAll('.btn-remove-img').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        pendingImages.splice(parseInt(btn.dataset.idx, 10), 1);
+        renderPendingImagePreviews();
+      });
+    });
+  }
+
+  fImage.addEventListener('change', function(){
+    var files = fImage.files ? Array.prototype.slice.call(fImage.files) : [];
+    if(!files.length) return;
+    Promise.all(files.map(function(file){ return resizeImageFile(file, 1400, 0.82); }))
+      .then(function(dataUrls){
+        pendingImages = pendingImages.concat(dataUrls);
+        renderPendingImagePreviews();
+        fImage.value = ''; // clear so selecting again appends more instead of replacing
+      })
+      .catch(function(){
+        alert('ไม่สามารถอ่านไฟล์ภาพบางไฟล์ได้ ลองใหม่อีกครั้งครับ');
+      });
+  });
+
+  /* ---------------- Lightbox ---------------- */
+  var lightbox = document.getElementById('lightbox');
+  var lightboxImg = document.getElementById('lightboxImg');
+  function openLightbox(src){
+    lightboxImg.src = src;
+    lightbox.style.display = 'flex';
+  }
+  function closeLightbox(){
+    lightbox.style.display = 'none';
+    lightboxImg.src = '';
+  }
+  document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+  lightbox.addEventListener('click', function(e){ if(e.target === lightbox) closeLightbox(); });
+
+  /* ---------------- Detail view (Notion-style full page) ---------------- */
+  var detailView = document.getElementById('detailView');
+  var detailContent = document.getElementById('detailContent');
+
+  function openDetailView(trade){
+    var rr = calcRR(trade);
+    var images = (trade.images && trade.images.length) ? trade.images : [];
+
+    var statsHtml = [
+      ['วันที่', trade.date],
+      ['Lot', fmtNum(trade.lot, 2)],
+      ['Entry', trade.entry === null ? '–' : fmtNum(trade.entry, 2)],
+      ['SL', trade.sl === null ? '–' : fmtNum(trade.sl, 2)],
+      ['Exit', trade.exit === null ? '–' : fmtNum(trade.exit, 2)],
+      ['RR', rr === null ? '–' : (rr>=0?'+':'') + fmtNum(rr,2) + 'R'],
+      ['P/L', fmtUSD(trade.pl)]
+    ].map(function(pair){
+      return '<div class="detail-stat"><div class="k">' + pair[0] + '</div><div class="v">' + pair[1] + '</div></div>';
+    }).join('');
+
+    var imagesHtml = images.length
+      ? '<div class="detail-images">' + images.map(function(src){ return '<img src="' + src + '" data-full="' + src + '">'; }).join('') + '</div>'
+      : '';
+
+    var noteHtml = trade.note
+      ? '<div class="detail-note-body">' + trade.note.replace(/</g,'&lt;') + '</div>'
+      : '<div class="detail-note-empty">ยังไม่ได้เขียนบันทึกสำหรับออเดอร์นี้</div>';
+
+    detailContent.innerHTML =
+      '<div class="detail-eyebrow">' + trade.symbol + ' · ' + (trade.direction === 'buy' ? 'BUY' : 'SELL') + ' · ' + trade.tag + '</div>' +
+      '<h2 class="detail-title">' + trade.symbol + ' ' + (trade.direction === 'buy' ? 'BUY' : 'SELL') + ' — ' + trade.date + '</h2>' +
+      '<div class="detail-stat-row">' + statsHtml + '</div>' +
+      imagesHtml +
+      '<div class="detail-note-label">หมายเหตุ</div>' +
+      noteHtml +
+      '<div class="detail-footer"><button class="btn-ghost" id="detailDeleteBtn" data-id="' + trade.id + '">ลบออเดอร์นี้</button></div>';
+
+    detailContent.querySelectorAll('.detail-images img').forEach(function(img){
+      img.addEventListener('click', function(){ openLightbox(img.dataset.full); });
+    });
+    document.getElementById('detailDeleteBtn').addEventListener('click', function(){
+      if(confirm('ลบออเดอร์นี้ออกจากสมุดบันทึกใช่ไหม?')){
+        closeDetailView();
+        deleteTrade(trade.id);
+      }
+    });
+
+    detailView.style.display = 'flex';
+  }
+  function closeDetailView(){
+    detailView.style.display = 'none';
+    detailContent.innerHTML = '';
+  }
+  document.getElementById('detailClose').addEventListener('click', closeDetailView);
+  detailView.addEventListener('click', function(e){ if(e.target === detailView) closeDetailView(); });
+
+  /* ---------------- Storage usage indicator ---------------- */
+  function renderStorageUsage(){
+    var bytes = 0;
+    try{ bytes = new Blob([JSON.stringify(trades)]).size; }catch(e){ bytes = JSON.stringify(trades).length; }
+    var kb = bytes / 1024;
+    var label = kb > 1024 ? (kb/1024).toFixed(2) + ' MB' : Math.round(kb) + ' KB';
+    document.getElementById('storageUsage').textContent = 'ใช้พื้นที่จัดเก็บไปแล้ว ~' + label + ' (เก็บด้วย IndexedDB รองรับได้หลักร้อย MB ขึ้นไป)';
+  }
+
+  /* ---------------- Add trade form ---------------- */
+  var fDate = document.getElementById('fDate');
+  fDate.value = new Date().toISOString().slice(0,10);
+
+  var fTag = document.getElementById('fTag');
+  var fTagCustomWrap = document.getElementById('fTagCustomWrap');
+  var fTagCustom = document.getElementById('fTagCustom');
+  fTag.addEventListener('change', function(){
+    fTagCustomWrap.style.display = fTag.value === 'อื่นๆ' ? 'block' : 'none';
+  });
+
+  document.getElementById('btnAddTrade').addEventListener('click', function(){
+    var symbol = document.getElementById('fSymbol').value.trim() || 'ไม่ระบุ';
+    var plVal = document.getElementById('fPL').value;
+    if(plVal === ''){
+      alert('กรุณาใส่กำไร/ขาดทุน ($) ของออเดอร์นี้ก่อนบันทึก');
+      return;
+    }
+    var tagVal = fTag.value === 'อื่นๆ' ? (fTagCustom.value.trim() || 'อื่นๆ') : fTag.value;
+
+    var parseOrNull = function(v){ return v === '' ? null : parseFloat(v); };
+
+    var trade = {
+      id: Date.now() + '_' + Math.random().toString(36).slice(2,7),
+      date: fDate.value || new Date().toISOString().slice(0,10),
+      symbol: symbol,
+      direction: document.getElementById('fDirection').value,
+      lot: parseFloat(document.getElementById('fLot').value) || 0,
+      entry: parseOrNull(document.getElementById('fEntry').value),
+      sl: parseOrNull(document.getElementById('fSL').value),
+      exit: parseOrNull(document.getElementById('fExit').value),
+      pl: parseFloat(plVal) || 0,
+      tag: tagVal,
+      note: document.getElementById('fNote').value.trim(),
+      images: pendingImages.slice()
+    };
+
+    var btn = document.getElementById('btnAddTrade');
+    btn.disabled = true;
+    btn.textContent = 'กำลังบันทึก…';
+
+    dbAdd(trade).then(function(){
+      trades.unshift(trade);
+
+      // reset form (keep symbol/direction/lot/tag for fast repeat entry)
+      document.getElementById('fEntry').value = '';
+      document.getElementById('fSL').value = '';
+      document.getElementById('fExit').value = '';
+      document.getElementById('fPL').value = '';
+      document.getElementById('fNote').value = '';
+      pendingImages = [];
+      fImage.value = '';
+      renderPendingImagePreviews();
+
+      renderAll();
+    }).catch(function(err){
+      var msg = (err && err.name === 'QuotaExceededError')
+        ? 'พื้นที่จัดเก็บในเบราว์เซอร์เต็มแล้ว (ส่วนใหญ่เกิดจากภาพที่แนบไว้เยอะ)\n\nลองกด "ส่งออก CSV" เพื่อสำรองข้อมูล แล้วลบออเดอร์เก่าที่มีภาพแนบบางส่วนออกก่อนบันทึกต่อ'
+        : 'บันทึกไม่สำเร็จ: ' + (err && err.message ? err.message : 'ไม่ทราบสาเหตุ');
+      alert(msg);
+    }).finally(function(){
+      btn.disabled = false;
+      btn.textContent = 'บันทึกออเดอร์';
+    });
+  });
+
+  /* ---------------- Filter ---------------- */
+  var filterSymbol = document.getElementById('filterSymbol');
+  filterSymbol.addEventListener('change', renderAll);
+
+  function getFilteredTrades(){
+    var sym = filterSymbol.value;
+    if(!sym) return trades;
+    return trades.filter(function(t){ return t.symbol === sym; });
+  }
+
+  function updateSymbolFilterOptions(){
+    var current = filterSymbol.value;
+    var symbols = Array.from(new Set(trades.map(function(t){ return t.symbol; }))).sort();
+    filterSymbol.innerHTML = '<option value="">ทั้งหมด</option>' +
+      symbols.map(function(s){ return '<option value="' + s + '">' + s + '</option>'; }).join('');
+    if(symbols.indexOf(current) !== -1) filterSymbol.value = current;
+  }
+
+  /* ---------------- Delete ---------------- */
+  function deleteTrade(id){
+    dbDelete(id).then(function(){
+      trades = trades.filter(function(t){ return t.id !== id; });
+      renderAll();
+    }).catch(function(err){
+      alert('ลบไม่สำเร็จ: ' + (err && err.message ? err.message : 'ไม่ทราบสาเหตุ'));
+    });
+  }
+
+  /* ---------------- Render: summary stats ---------------- */
+  function renderStats(list){
+    var total = list.length;
+    var wins = list.filter(function(t){ return t.pl > 0; }).length;
+    var losses = list.filter(function(t){ return t.pl < 0; }).length;
+    var winRate = total > 0 ? (wins / total * 100) : 0;
+    var totalPL = list.reduce(function(s,t){ return s + t.pl; }, 0);
+
+    var rrList = list.map(calcRR).filter(function(v){ return v !== null; });
+    var avgRR = rrList.length ? (rrList.reduce(function(s,v){ return s+v; }, 0) / rrList.length) : null;
+
+    document.getElementById('statTotal').textContent = total;
+
+    var wrEl = document.getElementById('statWinRate');
+    wrEl.textContent = fmtNum(winRate, 1) + '%';
+    wrEl.className = 'stat-value ' + (winRate >= 50 ? 'good' : (total > 0 ? 'bad' : ''));
+    document.getElementById('statWinSub').textContent = wins + ' ชนะ / ' + losses + ' แพ้';
+
+    var rrEl = document.getElementById('statAvgRR');
+    rrEl.textContent = avgRR === null ? '–' : (avgRR >= 0 ? '+' : '') + fmtNum(avgRR, 2) + 'R';
+    rrEl.className = 'stat-value ' + (avgRR === null ? '' : (avgRR >= 0 ? 'good' : 'bad'));
+
+    var plEl = document.getElementById('statTotalPL');
+    plEl.textContent = fmtUSD(totalPL);
+    plEl.className = 'stat-value ' + (totalPL > 0 ? 'good' : (totalPL < 0 ? 'bad' : ''));
+    document.getElementById('statTotalPLTHB').textContent = '≈ ' + fmtTHB(totalPL * fxRate);
+  }
+
+  /* ---------------- Render: weak-spot tag breakdown ---------------- */
+  function renderTagBreakdown(list){
+    var groups = {};
+    list.forEach(function(t){
+      var key = t.tag || 'ไม่ระบุ';
+      if(!groups[key]) groups[key] = { tag:key, count:0, wins:0, totalPL:0, rrSum:0, rrCount:0 };
+      var g = groups[key];
+      g.count++;
+      if(t.pl > 0) g.wins++;
+      g.totalPL += t.pl;
+      var rr = calcRR(t);
+      if(rr !== null){ g.rrSum += rr; g.rrCount++; }
+    });
+
+    var rows = Object.keys(groups).map(function(k){ return groups[k]; });
+    rows.sort(function(a,b){ return a.totalPL - b.totalPL; }); // worst (most negative) first
+
+    var tbody = document.getElementById('tagTableBody');
+    tbody.innerHTML = '';
+    document.getElementById('weakEmpty').style.display = rows.length ? 'none' : 'block';
+
+    rows.forEach(function(g){
+      var winRate = g.count ? (g.wins / g.count * 100) : 0;
+      var avgRR = g.rrCount ? (g.rrSum / g.rrCount) : null;
+      var tr = document.createElement('tr');
+      if(g.totalPL < 0) tr.className = 'tag-weak';
+      else if(g.totalPL > 0) tr.className = 'tag-strong';
+      tr.innerHTML =
+        '<td class="tag-name">' + g.tag + '</td>' +
+        '<td>' + g.count + '</td>' +
+        '<td>' + fmtNum(winRate, 0) + '%</td>' +
+        '<td>' + (avgRR === null ? '–' : (avgRR>=0?'+':'') + fmtNum(avgRR,2) + 'R') + '</td>' +
+        '<td class="' + (g.totalPL > 0 ? 'pl-good' : (g.totalPL < 0 ? 'pl-bad' : '')) + '">' + fmtUSD(g.totalPL) + '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  /* ---------------- Render: entries table ---------------- */
+  function renderEntries(list){
+    var tbody = document.getElementById('entriesTableBody');
+    tbody.innerHTML = '';
+    document.getElementById('entriesEmpty').style.display = list.length ? 'none' : 'block';
+
+    list.forEach(function(t){
+      var rr = calcRR(t);
+      var images = t.images && t.images.length ? t.images : (t.image ? [t.image] : []);
+      var tr = document.createElement('tr');
+      tr.style.cursor = 'pointer';
+      var thumbHtml = images.length
+        ? '<span class="thumb-wrap"><img src="' + images[0] + '">' + (images.length > 1 ? '<span class="thumb-count-badge">' + images.length + '</span>' : '') + '</span>'
+        : '<span class="thumb-empty">–</span>';
+      tr.innerHTML =
+        '<td>' + t.date + '</td>' +
+        '<td>' + t.symbol + '</td>' +
+        '<td><span class="dir-chip ' + t.direction + '">' + (t.direction === 'buy' ? 'BUY' : 'SELL') + '</span></td>' +
+        '<td>' + fmtNum(t.lot, 2) + '</td>' +
+        '<td>' + (t.entry === null ? '–' : fmtNum(t.entry, 2)) + '</td>' +
+        '<td>' + (t.sl === null ? '–' : fmtNum(t.sl, 2)) + '</td>' +
+        '<td>' + (t.exit === null ? '–' : fmtNum(t.exit, 2)) + '</td>' +
+        '<td>' + (rr === null ? '–' : (rr>=0?'+':'') + fmtNum(rr,2) + 'R') + '</td>' +
+        '<td class="' + (t.pl > 0 ? 'pl-good' : (t.pl < 0 ? 'pl-bad' : '')) + '">' + fmtUSD(t.pl) + '</td>' +
+        '<td><span class="tag-chip">' + t.tag + '</span></td>' +
+        '<td class="note-cell">' + (t.note ? t.note.replace(/</g,'&lt;') : '') + '</td>' +
+        '<td class="thumb-cell">' + thumbHtml + '</td>' +
+        '<td><button class="btn-del" data-id="' + t.id + '" title="ลบรายการนี้">✕</button></td>';
+      tr.addEventListener('click', function(e){
+        if(e.target.closest && e.target.closest('.btn-del')) return;
+        openDetailView(t);
+      });
+      tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll('.btn-del').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        if(confirm('ลบออเดอร์นี้ออกจากสมุดบันทึกใช่ไหม?')){
+          deleteTrade(btn.dataset.id);
+        }
+      });
+    });
+  }
+
+  /* ---------------- Export CSV ---------------- */
+  document.getElementById('btnExportCsv').addEventListener('click', function(){
+    var list = getFilteredTrades();
+    var headers = ['วันที่','สินทรัพย์','ทิศทาง','Lot','Entry','SL','Exit','RR','P/L($)','เหตุผล','หมายเหตุ','จำนวนรูปแนบ'];
+    var rows = list.map(function(t){
+      var rr = calcRR(t);
+      var imgCount = t.images && t.images.length ? t.images.length : (t.image ? 1 : 0);
+      return [
+        t.date, t.symbol, t.direction === 'buy' ? 'BUY' : 'SELL', t.lot,
+        t.entry === null ? '' : t.entry,
+        t.sl === null ? '' : t.sl,
+        t.exit === null ? '' : t.exit,
+        rr === null ? '' : rr.toFixed(2),
+        t.pl.toFixed(2),
+        t.tag,
+        '"' + (t.note || '').replace(/"/g,'""') + '"',
+        imgCount
+      ].join(',');
+    });
+    var csv = '\uFEFF' + headers.join(',') + '\n' + rows.join('\n');
+    var blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'gtpro-trade-journal-' + new Date().toISOString().slice(0,10) + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  /* ---------------- Render all ---------------- */
+  function renderAll(){
+    updateSymbolFilterOptions();
+    var list = getFilteredTrades();
+    renderStats(list);
+    renderTagBreakdown(list);
+    renderEntries(list);
+    renderStorageUsage();
+  }
+
+  /* ---------------- Init: load from IndexedDB ---------------- */
+  migrateLegacyIfNeeded()
+    .then(dbGetAll)
+    .then(function(list){
+      trades = list;
+      sortTradesDesc();
+      dbReady = true;
+      renderAll();
+      fetchFx();
+    })
+    .catch(function(err){
+      dbReady = false;
+      renderAll();
+      alert('เบราว์เซอร์นี้ไม่รองรับการจัดเก็บข้อมูลแบบ IndexedDB (มักเกิดในโหมด Private/Incognito บางเบราว์เซอร์)\n\nลองเปิดด้วยโหมดปกติ หรือเบราว์เซอร์อื่น เพื่อให้บันทึกและแนบรูปได้');
+    });
+})();
+</script>
+</body>
+</html>
